@@ -92,6 +92,7 @@ routing_svcs() {
        chkconfig conntrackd off
        echo "dnsmasq cloud-passwd-srvr " >> /var/cache/cloud/enabled_svcs
        echo "keepalived conntrackd " >> /var/cache/cloud/disabled_svcs
+       echo "dhcp-option=option:ntp-server,10.0.3.101,10.1.3.101" > /etc/dnsmasq.d/local.conf
    fi
 }
 
@@ -107,6 +108,7 @@ dhcpsrvr_svcs() {
    chkconfig conntrackd off
    echo "ssh dnsmasq cloud-passwd-srvr apache2" > /var/cache/cloud/enabled_svcs
    echo "cloud nfs-common haproxy portmap" > /var/cache/cloud/disabled_svcs
+   echo "dhcp-option=option:ntp-server,10.0.3.101,10.1.3.101" > /etc/dnsmasq.d/local.conf
 }
 
 elbvm_svcs() {
@@ -184,6 +186,13 @@ fi
 
 #empty known hosts
 echo "" > /root/.ssh/known_hosts
+
+sed -i s/^server/#server/ /etc/ntp.conf
+cat >> /etc/ntp.conf<<EOF
+# internal servers
+server 10.0.3.101
+server 10.1.3.101
+EOF
 
 if [ "$Hypervisor" == "kvm" ]
 then
