@@ -1368,7 +1368,7 @@ public class LibvirtComputingResource extends ServerResourceBase implements Serv
                             + " other_config:ovs-host-setup");
             boolean configured = false;
             if (configuredHosts != null) {
-                final String hostIdsStr[] = configuredHosts.split(",");
+                final String hostIdsStr[] = configuredHosts.replaceAll("\"", "").split(",");
                 for (final String hostIdStr : hostIdsStr) {
                     if (hostIdStr.equals(((Long)hostId).toString())) {
                         configured = true;

@@ -65,6 +65,7 @@ def setup_ovs_bridge(bridge, key, cs_host_id):
 	lib.do_cmd([lib.VSCTL_PATH, "set", "bridge", bridge, "other_config:is-ovs-tun-network=True"])
 	#get list of hosts using this bridge
         conf_hosts = lib.do_cmd([lib.VSCTL_PATH, "get","bridge", bridge,"other_config:ovs-host-setup"])
+        conf_hosts = conf_hosts[1:-1] # remove quotes added by ovs
 	#add cs_host_id to list of hosts using this bridge
         conf_hosts = cs_host_id + (conf_hosts and ',%s' % conf_hosts or '')
         lib.do_cmd([lib.VSCTL_PATH, "set", "bridge", bridge,
@@ -92,6 +93,7 @@ def setup_ovs_bridge_for_distributed_routing(bridge, cs_host_id):
 
         res = lib.do_cmd([lib.VSCTL_PATH, "set", "bridge", bridge, "other_config:is-ovs_vpc_distributed_vr_network=True"])
         conf_hosts = lib.do_cmd([lib.VSCTL_PATH, "get","bridge", bridge,"other:ovs-host-setup"])
+        conf_hosts = conf_hosts[1:-1] # remove quotes added by ovs
         conf_hosts = cs_host_id + (conf_hosts and ',%s' % conf_hosts or '')
         lib.do_cmd([lib.VSCTL_PATH, "set", "bridge", bridge,
                    "other_config:ovs-host-setup=%s" % conf_hosts])
@@ -216,14 +218,21 @@ def create_tunnel(bridge, remote_ip, key, src_host, dst_host):
         if tun_ofport.endswith('\n'):
             tun_ofport = tun_ofport[:-1]
 
-        ovs_tunnel_network = lib.do_cmd([lib.VSCTL_PATH, "get", "bridge", bridge, "other_config:is-ovs-tun-network"])
-        ovs_vpc_distributed_vr_network = lib.do_cmd([lib.VSCTL_PATH, "get", "bridge", bridge,
-                                                     "other_config:is-ovs_vpc_distributed_vr_network"])
+        try:
+            ovs_tunnel_network = lib.do_cmd([lib.VSCTL_PATH, "get", "bridge", bridge, "other_config:is-ovs-tun-network"])
+        except lib.PluginError:
+            ovs_tunnel_network = False
+        try:
+            ovs_vpc_distributed_vr_network = lib.do_cmd([lib.VSCTL_PATH, "get", "bridge", bridge,
+                                                         "other_config:is-ovs_vpc_distributed_vr_network"])
+        except lib.PluginError:
+            ovs_vpc_distributed_vr_network = False
 
         if ovs_tunnel_network == 'True':
-            # add flow entryies for dropping broadcast coming in from gre tunnel
-            lib.add_flow(bridge, priority=1000, in_port=tun_ofport,
-                         dl_dst='ff:ff:ff:ff:ff:ff', actions='drop')
+# dropping broadcasts makes arp and dhcp fail. no idea why this is done here. disable for now.
+#            # add flow entryies for dropping broadcast coming in from gre tunnel
+#            lib.add_flow(bridge, priority=1000, in_port=tun_ofport,
+#                         dl_dst='ff:ff:ff:ff:ff:ff', actions='drop')
             lib.add_flow(bridge, priority=1000, in_port=tun_ofport,
                      nw_dst='224.0.0.0/24', actions='drop')
             drop_flow_setup = True
