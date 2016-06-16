@@ -23,12 +23,9 @@
   <parent>
     <groupId>org.apache.cloudstack</groupId>
     <artifactId>cloudstack-service-secondary-storage</artifactId>
-    <version>4.8.0</version>
+    <version>4.8.1-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
-    <properties>
-    <skipTests>true</skipTests>
-  </properties>
     <dependencies>
     <dependency>
       <groupId>log4j</groupId>

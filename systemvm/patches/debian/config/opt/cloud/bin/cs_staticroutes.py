@@ -20,14 +20,6 @@ from pprint import pprint
 
 def merge(dbag, staticroutes):
     for route in staticroutes['routes']:
-        key = route['ip_address']
-        revoke = route['revoke']
-        if revoke:
-            try:
-                del dbag[key]
-            except KeyError:
-                pass
-        else:
-            dbag[key] = route
-
+        key = route['network']
+        dbag[key] = route
     return dbag
