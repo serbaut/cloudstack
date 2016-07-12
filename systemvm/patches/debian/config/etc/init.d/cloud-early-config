@@ -1344,6 +1344,10 @@ start() {
   # Clear /tmp for file lock
   rm -f /tmp/*.lock
   rm -f /tmp/rrouter_bumped
+  # Temp fix. Looks like cs wants some base rules to be present
+  if [ -f "/etc/iptables/rules.v4" ]; then
+      iptables-restore < /etc/iptables/rules.v4
+  fi
   local hyp=$(hypervisor)
   [ $? -ne 0 ] && log_it "Failed to detect hypervisor type, bailing out of early init" && exit 10
   log_it "Detected that we are running inside $hyp guest"
